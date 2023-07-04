@@ -12,6 +12,7 @@ class Player():
         self.round_bid = 0
         self.current_bid = 0
         self.is_all_in = False
+        self.is_out = False
     
     '''
     Returns a PlayerAction and a raise amount based on the output of 

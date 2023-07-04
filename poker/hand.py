@@ -91,33 +91,37 @@ class Hand():
         ]
         
         for category in hand_categories:
-            result, value = category()
+            result, values = category()
             if result:
-                return result, value
+                return result, values
 
     def __gt__(self, other: 'Hand') -> bool:
-        self_category, self_value = self.evaluate_hand()
-        other_category, other_value = other.evaluate_hand()
+        self_category, self_values = self.evaluate_hand()
+        other_category, other_values = other.evaluate_hand()
 
         if self_category == other_category:
-            return self_value > other_value
+            for i in range(len(self_values)):
+                if self_values[i] != other_values[i]:
+                    return self_values[i] > other_values[i]
         else:
             return self_category > other_category
     
     def __lt__(self, other: 'Hand') -> bool:
-        self_category, self_value = self.evaluate_hand()
-        other_category, other_value = other.evaluate_hand()
+        self_category, self_values = self.evaluate_hand()
+        other_category, other_values = other.evaluate_hand()
 
         if self_category == other_category:
-            return self_value < other_value
+            for i in range(len(self_values)):
+                if self_values[i] != other_values[i]:
+                    return self_values[i] < other_values[i]
         else:
             return self_category < other_category
     
     def __eq__(self, other: 'Hand') -> bool:
-        self_category, self_value = self.evaluate_hand()
-        other_category, other_value = other.evaluate_hand()
+        self_category, self_values = self.evaluate_hand()
+        other_category, other_values = other.evaluate_hand()
 
-        return self_category == other_category and self_value == other_value
+        return self_category == other_category and self_values == other_values
     
     def __ge__(self, other: 'Hand') -> bool:
         return not self < other
@@ -128,7 +132,7 @@ class Hand():
     def __ne__(self, other: 'Hand') -> bool:
         return not self == other
     
-    def _check_royal_flush(self) -> Tuple[str, int]:
+    def _check_royal_flush(self) -> Tuple[str, List[int]]:
         royal_values = [14, 13, 12, 11, 10]
         suits = [Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE]
         for suit in suits:
@@ -136,76 +140,93 @@ class Hand():
             if len(suit_cards) >= 5:
                 values = sorted([card.value for card in suit_cards], reverse=True)
                 if values[:5] == royal_values:
-                    return HandCategory.ROYAL_FLUSH, values[0]
+                    return HandCategory.ROYAL_FLUSH, royal_values
         return None, None
     
-    def _check_straight_flush(self) -> Tuple[str, int]:
+    def _check_straight_flush(self) -> Tuple[str, List[int]]:
         suits = [Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE]
         for suit in suits:
             suit_cards = [card for card in self.cards if card.suit == suit]
             if len(suit_cards) >= 5:
-                values = sorted([card.value for card in suit_cards], reverse=True)
-                if self._is_consecutive(values[:5]):
-                    return HandCategory.STRAIGHT_FLUSH, values[0]
+                values = sorted([card.value for card in suit_cards], reverse=True) 
+                for i in range(len(values) - 5):
+                    if self._is_consecutive(values[i:5+i]):
+                        return HandCategory.STRAIGHT_FLUSH, values[:5]
+                    elif values[0] == 14 and self._is_low_straight(values):
+                        return HandCategory.STRAIGHT_FLUSH, [5, 4, 3, 2, 1]
         return None, None
     
-    def _check_four_of_a_kind(self) -> Tuple[str, int]:
+    def _check_four_of_a_kind(self) -> Tuple[str, List[int]]:
         for value in range(2, 15):
             value_cards = [card for card in self.cards if card.value == value]
+            non_value_cards = sorted([card for card in self.cards if card.value != value], key=lambda c: c.value, reverse=True)
             if len(value_cards) >= 4:
-                return HandCategory.FOUR_OF_A_KIND, value
+                return HandCategory.FOUR_OF_A_KIND, [value, non_value_cards[0]]
         return None, None
     
-    def _check_full_house(self) -> Tuple[str, int]:
+    def _check_full_house(self) -> Tuple[str, List[int]]:
         three_of_a_kind = self._check_three_of_a_kind()
         if three_of_a_kind[0]:
+            remaining_cards = [card for card in self.cards if card.value != three_of_a_kind[0]]
+            temp_cards = self.cards
+            self.cards = remaining_cards
             pair = self._check_one_pair()
+            self.cards = temp_cards
             if pair[0]:
-                return HandCategory.FULL_HOUSE, three_of_a_kind[1]
+                return HandCategory.FULL_HOUSE, [three_of_a_kind[0], pair[0]]
         return None, None
     
-    def _check_flush(self) -> Tuple[str, int]:
+    def _check_flush(self) -> Tuple[str, List[int]]:
         suits = [Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE]
         for suit in suits:
             suit_cards = [card for card in self.cards if card.suit == suit]
             if len(suit_cards) >= 5:
                 values = sorted([card.value for card in suit_cards], reverse=True)
-                return HandCategory.FLUSH, values[0]
+                return HandCategory.FLUSH, values[:5]
         return None, None
     
-    def _check_straight(self) -> Tuple[str, int]:
+    def _check_straight(self) -> Tuple[str, List[int]]:
         values = sorted([card.value for card in self.cards], reverse=True)
-        if self._is_consecutive(values[:5]):
-            return HandCategory.STRAIGHT, values[0]
-        elif values[0] == 14 and self._is_low_straight(values):
-            return HandCategory.STRAIGHT, 5
+        for i in range(len(self.cards) - 5):
+            if self._is_consecutive(values[i:5+i]):
+                return HandCategory.STRAIGHT, values[:5]
+            elif values[0] == 14 and self._is_low_straight(values):
+                return HandCategory.STRAIGHT, [5, 4, 3, 2, 1]
         return None, None
     
-    def _check_three_of_a_kind(self) -> Tuple[str, int]:
+    def _check_three_of_a_kind(self) -> Tuple[str, List[int]]:
         for value in range(2, 15):
             value_cards = [card for card in self.cards if card.value == value]
+            remaining_cards = [card for card in self.cards if card.value != value]
             if len(value_cards) >= 3:
-                return HandCategory.THREE_OF_A_KIND, value
+                return HandCategory.THREE_OF_A_KIND, [value, remaining_cards[0], remaining_cards[1]]
         return None, None
     
-    def _check_two_pair(self) -> Tuple[str, int]:
+    def _check_two_pair(self) -> Tuple[str, List[int]]:
         pair1 = self._check_one_pair()
         if pair1[0]:
+            remaining_cards = [card for card in self.cards if card.value != pair1[1][0]]
+            temp_cards = self.cards
+            self.cards = remaining_cards
             pair2 = self._check_one_pair()
+            self.cards = temp_cards
             if pair2[0] and pair2[1] != pair1[1]:
-                return HandCategory.TWO_PAIR, max(pair1[1], pair2[1])
+                self.cards = temp_cards
+                return HandCategory.TWO_PAIR, [max(pair1[1][0], pair2[1][0]), min(pair1[1][0], pair2[1][0]), pair2[1][1]]
+            self.cards = temp_cards
         return None, None
     
-    def _check_one_pair(self) -> Tuple[str, int]:
+    def _check_one_pair(self) -> Tuple[str, List[int]]:
         for value in range(2, 15):
             value_cards = [card for card in self.cards if card.value == value]
+            remaining_cards = sorted([card for card in self.cards if card.value != value], key=lambda c: c.value, reverse=True)
             if len(value_cards) >= 2:
-                return HandCategory.ONE_PAIR, value
+                return HandCategory.ONE_PAIR, remaining_cards[:3]
         return None, None
     
-    def _check_high_card(self) -> Tuple[str, int]:
+    def _check_high_card(self) -> Tuple[str, List[int]]:
         values = sorted([card.value for card in self.cards], reverse=True)
-        return HandCategory.HIGH_CARD, values[0]
+        return HandCategory.HIGH_CARD, values[:5]
     
     def _is_low_straight(self, values: List[int]) -> bool:
         low_straight = [14, 2, 3, 4, 5]
@@ -213,5 +234,5 @@ class Hand():
             return True
         return False
     
-    def _is_consecutive(self, values):
+    def _is_consecutive(self, values) -> List[int]:
         return all(values[i] == values[i+1] + 1 for i in range(len(values)-1))
