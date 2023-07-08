@@ -2,27 +2,33 @@ import neat
 from neat import DefaultGenome, Config
 from .hand import Hand
 from .player_actions import PlayerActions
+
 class Player():
-    def __init__(self, starting_balance: int, hand: Hand, genome: DefaultGenome, config: Config) -> None:
+    def __init__(self, starting_balance: int, hand: Hand, num_hand_sims: int, genome: DefaultGenome, config: Config) -> None:
         self.balance = starting_balance
         self.hand = hand
+        self.num_hand_sims = num_hand_sims
         self.genome = genome
+        self.net = neat.nn.RecurrentNetwork.create(genome, config)
         self.config = config
         self.folded = False
         self.round_bid = 0
         self.current_bid = 0
         self.is_all_in = False
         self.is_out = False
+        self.prev_action = PlayerActions.NO_ACTION
     
-    '''
-    Returns a PlayerAction and a raise amount based on the output of 
-    the neural network. Raise amount is returned every time as a percentage of the
-    total stack of the player.
-    '''
-    def action(self) -> tuple[PlayerActions, int]:
-        network = neat.nn.FeedForwardNetwork.create(self.genome, self.config)
-        decision = network.activate()        
-        return PlayerActions(decision.index(max(decision[:-1]))), decision[-1]
+    def action(self, pot_amount: int, opp1: PlayerActions, opp2: PlayerActions, opp3: PlayerActions, opp4: PlayerActions, 
+               opp5: PlayerActions, opp6: PlayerActions, opp7: PlayerActions, opp8: PlayerActions, opp9: PlayerActions) -> tuple[PlayerActions, int]:
+        '''
+        Returns a PlayerAction and a raise amount based on the output of 
+        the neural network. Raise amount is returned every time.
+        '''
+        decision = self.net.activate((self.hand.hand_strength(self.num_hand_sims), self.balance, self.round_bid, self.prev_action.value,
+                                     pot_amount, opp1.value, opp2.value, opp3.value, opp4.value, opp5.value, opp6.value, opp7.value,
+                                     opp8.value, opp9.value))
+        self.prev_action = PlayerActions(decision.index(max(decision[:-1])))
+        return self.prev_action, decision[-1]
     
     def deduct_balance(self, amount: int):
         self.balance -= amount
@@ -65,3 +71,6 @@ class Player():
         self.current_bid += temp_balance
         self.round_bid += temp_balance
         return temp_balance
+
+    def update_fitness(self) -> None:
+        self.genome.fitness = self.balance

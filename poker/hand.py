@@ -1,10 +1,12 @@
 from multiprocessing import Pool
+import multiprocessing
 from .card import Card
 from .deck import Deck
 from .suit import Suit
 from .hand_category import HandCategory
 from typing import Tuple, List
 from itertools import combinations
+import copy
 import random
 
 class Hand():
@@ -25,6 +27,15 @@ class Hand():
             None
         '''
         self.cards.append(card)
+    
+    def clear(self) -> None:
+        '''
+        Resets hand to empty list of Cards
+
+        Returns:
+            None
+        '''
+        self.cards = []
 
     def hand_strength(self, num_decks: int) -> float:
         '''
@@ -36,7 +47,7 @@ class Hand():
         Returns:
             float: The calculated hand strength.
         '''
-        num_processes = 8
+        num_processes = multiprocessing.cpu_count()
         iterations_per_process = num_decks // num_processes
 
         with Pool(num_processes) as pool:
@@ -50,14 +61,13 @@ class Hand():
     def _run_simulation(self, iterations: int) -> Tuple[int, int]:
         won_hands = 0
         tot_hands = 0
-
         for _ in range(iterations):
             starting_deck = Deck()
             for card in self.cards:
                 starting_deck.remove_card(card)
             starting_deck.shuffle()
 
-            temp_hand = Hand(self.cards[:])
+            temp_hand = Hand(copy.deepcopy(self.cards))
 
             while len(temp_hand.cards) < 7:
                 temp_hand.add_card(starting_deck.draw_card())
@@ -65,10 +75,15 @@ class Hand():
             opponent_hands = list(combinations(starting_deck.cards, 2))
             for opponent_hand in opponent_hands:
                 temp_opponent_hand = Hand([opponent_hand[0], opponent_hand[1]])
+                for c in temp_hand.cards[2:]:
+                    temp_opponent_hand.add_card(c)
+                counter = 0
+                while len(temp_hand.cards) < 7:
+                    temp_hand.add_card(starting_deck[counter])
+                    counter += 1
                 if temp_hand > temp_opponent_hand:
                     won_hands += 1
                 tot_hands += 1
-
         return won_hands, tot_hands
 
     def evaluate_hand(self) -> Tuple[HandCategory, int]:
