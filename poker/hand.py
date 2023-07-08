@@ -6,14 +6,7 @@ from .hand_category import HandCategory
 from typing import Tuple, List
 from itertools import combinations
 import random
-'''
-This class represents a hand in a poker game,
-which includes community cards. The evalate_hand
-method attempts to find the best {hand_size} cards
-in the hand and categorize into a category defined by
-the HandCategory enum. The Hand class has a built-in
-comparator using the evaluate_hand method.
-'''
+
 class Hand():
     def __init__(self, cards: List[Card]=None) -> None:
         if cards:
@@ -21,22 +14,28 @@ class Hand():
         else:
             self.cards = []
 
-
-    '''
-    Adds card to cards in hand
-    '''
     def add_card(self, card: Card) -> None:
+        '''
+        Adds card to cards in hand
+
+        Args:
+            card (Card): A playing card object to go into a hand of cards
+
+        Returns:
+            None
+        '''
         self.cards.append(card)
 
-    '''
-    Performs a Monte Carlo simulation. Takes in 
-    a hand and a number of decks to randomly generate with the
-    remaining cards. 
-    Randomizes the deck and checks how many times the hand loses 
-    against every possible opponent. This happens num_decks times.
-    Uses multiprocessing to speed up simulation
-    '''
     def hand_strength(self, num_decks: int) -> float:
+        '''
+        Performs a Monte Carlo simulation to calculate the hand strength.
+
+        Args:
+            num_decks (int): The number of decks to randomly generate with the remaining cards.
+            
+        Returns:
+            float: The calculated hand strength.
+        '''
         num_processes = 8
         iterations_per_process = num_decks // num_processes
 
@@ -72,11 +71,13 @@ class Hand():
 
         return won_hands, tot_hands
 
-    '''
-    Classifies hand and returns highest value within category for 
-    comparison purposes
-    '''
     def evaluate_hand(self) -> Tuple[HandCategory, int]:
+        '''
+        Classifies the hand and returns the highest value within the category for comparison purposes.
+
+        Returns:
+            Tuple[HandCategory, int]: The hand category and the highest value within that category.
+        '''
         hand_categories = [
             self._check_royal_flush,
             self._check_straight_flush,
@@ -96,6 +97,15 @@ class Hand():
                 return result, values
 
     def __gt__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is greater than the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is greater than the other hand, False otherwise.
+        """
         self_category, self_values = self.evaluate_hand()
         other_category, other_values = other.evaluate_hand()
 
@@ -107,6 +117,15 @@ class Hand():
             return self_category > other_category
     
     def __lt__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is less than the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is less than the other hand, False otherwise.
+        """
         self_category, self_values = self.evaluate_hand()
         other_category, other_values = other.evaluate_hand()
 
@@ -118,18 +137,54 @@ class Hand():
             return self_category < other_category
     
     def __eq__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is equal to the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is equal to the other hand, False otherwise.
+        """
         self_category, self_values = self.evaluate_hand()
         other_category, other_values = other.evaluate_hand()
 
         return self_category == other_category and self_values == other_values
     
     def __ge__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is greater than or equal to the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is greater than or equal to the other hand, False otherwise.
+        """
         return not self < other
     
     def __le__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is less than or equal to the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is less than or equal to the other hand, False otherwise.
+        """
         return not self > other
     
     def __ne__(self, other: 'Hand') -> bool:
+        """
+        Compares if this hand is not equal to the other hand.
+        
+        Args:
+            other (Hand): The other hand to compare with.
+            
+        Returns:
+            bool: True if this hand is not equal to the other hand, False otherwise.
+        """
         return not self == other
     
     def _check_royal_flush(self) -> Tuple[HandCategory, List[int]]:
