@@ -79,7 +79,8 @@ class Hand():
                     temp_opponent_hand.add_card(c)
                 counter = 0
                 while len(temp_hand.cards) < 7:
-                    temp_hand.add_card(starting_deck[counter])
+                    if starting_deck.cards[counter] not in temp_hand.cards:
+                        temp_hand.add_card(starting_deck.cards[counter])
                     counter += 1
                 if temp_hand > temp_opponent_hand:
                     won_hands += 1
