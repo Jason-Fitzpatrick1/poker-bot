@@ -2,6 +2,7 @@ import neat
 from neat import DefaultGenome, Config
 from .hand import Hand
 from .player_actions import PlayerActions
+from typing import Tuple
 
 class Player():
     def __init__(self, starting_balance: int, hand: Hand, num_hand_sims: int, genome: DefaultGenome, config: Config) -> None:
@@ -18,8 +19,7 @@ class Player():
         self.is_out = False
         self.prev_action = PlayerActions.NO_ACTION
     
-    def action(self, pot_amount: int, opp1: PlayerActions, opp2: PlayerActions, opp3: PlayerActions, opp4: PlayerActions, 
-               opp5: PlayerActions, opp6: PlayerActions, opp7: PlayerActions, opp8: PlayerActions, opp9: PlayerActions) -> tuple[PlayerActions, int]:
+    def action(self, pot_amount: int, opp1: PlayerActions, opp2: PlayerActions, opp3: PlayerActions, opp4: PlayerActions, opp5: PlayerActions, opp6: PlayerActions, opp7: PlayerActions, opp8: PlayerActions, opp9: PlayerActions) -> Tuple[PlayerActions, int]:
         '''
         Returns a PlayerAction and a raise amount based on the output of 
         the neural network. Raise amount is returned every time.

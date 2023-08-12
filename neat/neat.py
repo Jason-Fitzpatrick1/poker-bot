@@ -8,13 +8,15 @@ from ..poker.player import Player
 from ..poker.hand import Hand
 from ..poker.game import Game
 
-GAME_SIZE = 10 # number of players in a game
+# Set NEAT logging level to a lower level
+
+GAME_SIZE = 5 # number of players in a game
 STARTING_BALANCE = 1000 # starting number of chips
 STARTING_BLIND = 10 # starting big blind
 BLIND_INCREASE = 0.2 # how much big blind increases
-MAX_ROUNDS = 25 # max number of rounds in a game
-NUM_GENERATIONS = 100 # number of generations to train
-NUM_HAND_SIMS = 50 # number of randomized decks in Monte Carlo
+MAX_ROUNDS = 10 # max number of rounds in a game
+NUM_GENERATIONS = 10 # number of generations to train
+NUM_HAND_SIMS = 3 # number of randomized decks in Monte Carlo
 
 def eval_genomes(genomes, config) -> None:
     random.shuffle(genomes)
@@ -31,8 +33,7 @@ def eval_genomes(genomes, config) -> None:
         game.simulate()
         for player in players:
             player.update_fitness()
-
-
+            
 def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
@@ -44,7 +45,7 @@ def run():
 
     pop = neat.Population(config)
     stats = neat.StatisticsReporter()
-    pop.add_reporter(neat.Checkpointer(10))
+    #pop.add_reporter(neat.Checkpointer(10))
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
 

@@ -39,6 +39,7 @@ class Game():
             self.deck = Deck()
             self.deck.shuffle()
             self.deal()
+            round_names = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
             for i in range(4):
                 self.show_next_cards(i)
                 self.round()
@@ -50,7 +51,6 @@ class Game():
                         self.show_next_cards(rd)
                         rd += 1
                     break
-
             self.settle_pot()
             self.remove_losers()
             self.move_blinds()

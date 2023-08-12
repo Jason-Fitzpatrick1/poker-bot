@@ -48,10 +48,9 @@ class Hand():
             float: The calculated hand strength.
         '''
         num_processes = multiprocessing.cpu_count()
-        iterations_per_process = num_decks // num_processes
 
         with Pool(num_processes) as pool:
-            results = pool.map(self._run_simulation, [iterations_per_process] * num_processes)
+            results = pool.map(self._run_simulation, [num_decks] * num_processes)
         
         won_hands = sum(result[0] for result in results)
         tot_hands = sum(result[1] for result in results)
