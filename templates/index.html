@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <title>Texas Hold'em</title>
+</head>
+<body>
+    <div class="container">
+        <div class="table">
+            <div class="table-background"></div>
+            <div class="community-cards">
+                <img src="{{ url_for('static', filename=community.card1) }}" alt="Flop 1">
+                <img src="{{ url_for('static', filename=community.card2) }}" alt="Flop 2">
+                <img src="{{ url_for('static', filename=community.card3) }}" alt="Flop 3">
+                <img src="{{ url_for('static', filename=community.card4) }}" alt="Turn">
+                <img src="{{ url_for('static', filename=community.card5) }}" alt="River">
+            </div>
+            {% for player in players %}
+                <div class="player">
+                    <div class="player-label">
+                        Player {{ player.num }}
+                    </div>
+                    <div class="player-balance">
+                        Balance: ${{ player.balance }}
+                    </div>
+                    <div class="player-bet">
+                        Bet: ${{ player.bet }}
+                    </div>
+                    <div class="player-action">
+                        Action: {{ player.action }}
+                    </div>
+                    <div class="player-cards">
+                        <img src="{{ url_for('static', filename=player.card1) }}" alt="Card 1">
+                        <img src="{{ url_for('static', filename=player.card2) }}" alt="Card 2">
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="pot-label">
+                Round winnings: {{ pot_amount }}
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function updateFrontend() {
+        fetch('/update_data')
+            .then(response => response.json())
+            .then(data => {
+                // Refresh the page with the updated data
+                window.location.href = '/';
+            });
+    }
+    setInterval(updateFrontend, 5000);
+</script>
+
+</html>

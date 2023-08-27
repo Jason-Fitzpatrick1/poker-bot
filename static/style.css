@@ -1,0 +1,77 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.table {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+}
+
+.table-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("poker_images/table.jpg");
+    z-index: -1;
+}
+
+.player {
+    color: #ffffff;
+    position: absolute;
+    border: 1px solid #cccccc;
+    width: min-content;
+    padding: 10px;
+    margin: 10px;
+}
+
+.player-label {
+    font-weight: bold;
+}
+
+.player-cards {
+    white-space: nowrap;
+    margin: 10px;
+}
+
+.player-cards img {
+    width: 80px; /* Adjust as needed */
+    height: auto;
+}
+
+.community-cards {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    width: min-content;
+    height: min-content;
+}
+
+.community-cards img {
+    width: 100px;
+    height: 145px;
+}
+
+.pot-label {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    color: #ffffff;
+}

@@ -41,6 +41,7 @@ class Game():
             self.deal()
             round_names = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
             for i in range(4):
+                print(round_names[i])
                 self.show_next_cards(i)
                 self.round()
                 for p in self.players:
@@ -94,8 +95,11 @@ class Game():
                 other_actions = [p.prev_action for p in self.players if p != self.players[self.current_player]]
                 while len(other_actions) < 9:
                     other_actions.append(PlayerActions.FOLD)
-                action, raise_amount = player.action(self.pot_amount, other_actions[0], other_actions[1], other_actions[2], other_actions[3],
-                                                     other_actions[4], other_actions[5], other_actions[6], other_actions[7], other_actions[8])
+                if player.player_type == "AI":
+                    action, raise_amount = player.action(self.pot_amount, other_actions[0], other_actions[1], other_actions[2], other_actions[3],
+                                                        other_actions[4], other_actions[5], other_actions[6], other_actions[7], other_actions[8])
+                else:
+                    action, raise_amount = player.get_action_from_user()
                 self.perform_action(player, action, raise_amount)
             self.update_current_player()
 

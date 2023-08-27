@@ -27,7 +27,7 @@ def eval_genomes(genomes, config) -> None:
             genome_sublist = genomes[i:i+GAME_SIZE]
         players = []
         for (genome_id, genome) in genome_sublist:
-            player = Player(STARTING_BALANCE, Hand(), NUM_HAND_SIMS, genome, config)
+            player = Player(STARTING_BALANCE, "AI", Hand(), NUM_HAND_SIMS, genome, config)
             players.append(player)
         game = Game(players, STARTING_BLIND, BLIND_INCREASE, MAX_ROUNDS)
         game.simulate()
