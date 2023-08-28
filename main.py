@@ -12,6 +12,8 @@ from .poker.deck import Deck
 from .poker.game import Game
 from .poker.player import Player
 
+import logging
+
 STARTING_BALANCE = 1000 # starting number of chips
 STARTING_BLIND = 10 # starting big blind
 BLIND_INCREASE = 0.2 # how much big blind increases
@@ -58,6 +60,7 @@ def get_updated_players_data():
 def get_updated_community_data():
     # player hands are their two community cards, then the community cards
     community_cards = [card for card in game.players[0].hand.cards[2:]]
+    logging.error([f"{card.value}_OF_{card.suit.name}S" for card in game.players[0].hand.cards])
     data = {}
     for i, card in enumerate(community_cards):
         data[f"card{i}"] = f"poker_images/cards/{card.value}_OF_{card.suit.name}S.png"

@@ -59,7 +59,7 @@ class Player():
 
     def call(self, highest_bid: int, pot_size: int) -> int:
         amount_to_call = highest_bid - self.round_bid
-        if amount_to_call > self.balance:
+        if amount_to_call >= self.balance:
             return self.all_in(pot_size)
         else:
             self.balance -= amount_to_call
@@ -67,18 +67,22 @@ class Player():
             self.round_bid += amount_to_call
             return amount_to_call
     def raise_bid(self, blind: int, highest_bid: int, raise_amount:int, pot_size: int) -> int:
-        if blind > raise_amount:
+        amount_due = highest_bid - self.round_bid
+        if amount_due > raise_amount:
+            raise_amount = amount_due
+        elif blind > raise_amount - amount_due:
             raise_amount = blind
-        if raise_amount > self.balance or (highest_bid - self.round_bid) > self.balance:
+
+        if raise_amount >= self.balance:
             return self.all_in(pot_size)
         else:
-            bet = highest_bid - self.round_bid + raise_amount
-            self.balance -= bet
-            self.current_bid += bet
-            self.round_bid += bet
+            self.balance -= raise_amount
+            self.current_bid += raise_amount
+            self.round_bid += raise_amount
             return raise_amount
         
     def all_in(self, pot_size: int) -> int:
+        self.is_all_in = True
         temp_balance = self.balance
         self.balance = 0
         self.all_in_amount = pot_size + temp_balance

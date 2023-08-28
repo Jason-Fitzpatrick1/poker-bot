@@ -46,6 +46,7 @@ class Game():
                 self.round()
                 for p in self.players:
                     p.round_bid = 0
+                self.highest_bid = 0
                 if self.check_hand_winner():
                     rd = i
                     while len(self.players[0].hand.cards) < 7:
@@ -80,7 +81,11 @@ class Game():
             None
         """
         self.players[self.first_turn - 1].deduct_balance(self.blind)
+        self.players[self.first_turn - 1].current_bid += self.blind
+        self.players[self.first_turn - 1].round_bid += self.blind
         self.players[self.first_turn - 2].deduct_balance(self.blind // 2)
+        self.players[self.first_turn - 2].current_bid += self.blind // 2
+        self.players[self.first_turn - 2].round_bid += self.blind // 2
 
     def process_player_actions(self) -> None:
         """
@@ -126,7 +131,8 @@ class Game():
         elif action == PlayerActions.RAISE:
             self.handle_raise(player, raise_amount)
         elif action == PlayerActions.ALL_IN:
-            self.pot_amount += player.all_in(self.pot_amount)
+            self.handle_raise(player, player.balance)
+            #self.pot_amount += player.all_in(self.pot_amount)
         elif action == PlayerActions.FOLD:
             player.fold()
 
@@ -138,12 +144,11 @@ class Game():
             None
         """
         bet_amount = player.raise_bid(self.blind, self.highest_bid, raise_amount, self.pot_amount)
-        if bet_amount < self.highest_bid:
-            self.pot_amount += bet_amount
-        else:
-            self.pot_amount += bet_amount
-            self.highest_bid = bet_amount - self.highest_bid
-            self.last_bidder = self.current_player
+        self.pot_amount += bet_amount
+
+        if player.round_bid > self.highest_bid:
+            self.highest_bid = player.round_bid
+            self.last_bidder = player
 
     def update_current_player(self) -> None:
         """
