@@ -3,15 +3,8 @@ from .player import Player
 from .player_actions import PlayerActions
 from typing import List
 
-'''
-TODO:
-scale to have consistent starting amounts and raises
- - This should happen in the player for decision making...
- - maybe this should happen in testing??
-'''
-
 class Game():
-    def __init__(self, players: List[Player], starting_blind: int, blind_increase: float, max_rounds: int) -> None:
+    def __init__(self, players: List[Player], starting_blind: int, blind_increase: float, max_rounds: int, verbose: bool=False) -> None:
         self.players = players
         self.deck = Deck()
         self.blind = starting_blind
@@ -23,6 +16,7 @@ class Game():
         self.rounds_complete = 0
         self.last_bidder = len(self.players) -1
         self.current_player = 0
+        self.verbose = verbose
 
     def simulate(self) -> None:
         """
@@ -35,6 +29,8 @@ class Game():
         Returns:
             None
         """
+        if self.verbose:
+            print("Welcome to Texas Hold'Em!\n")
         while not self.check_winner() and self.rounds_complete < self.max_rounds:
             self.deck = Deck()
             self.deck.shuffle()
@@ -56,7 +52,9 @@ class Game():
             self.settle_pot()
             self.remove_losers()
             self.move_blinds()
-            self.reset_round() 
+            self.reset_round()
+            if self.verbose:
+                print("Round Complete!\n")
 
             self.rounds_complete += 1
     
@@ -86,6 +84,11 @@ class Game():
         self.players[self.first_turn - 2].deduct_balance(self.blind // 2)
         self.players[self.first_turn - 2].current_bid += self.blind // 2
         self.players[self.first_turn - 2].round_bid += self.blind // 2
+
+        if self.verbose and self.players[self.first_turn - 1].player_type != "AI":
+            print("You are big blind!\n")
+        elif self.verbose and self.players[self.first_turn - 2].player_type != "AI":
+            print("You are small blind!\n")
 
     def process_player_actions(self) -> None:
         """
@@ -126,15 +129,23 @@ class Game():
         """
         if action == PlayerActions.CHECK:
             player.check(self.highest_bid)
+            if self.verbose:
+                print("Player checks\n")
         elif action == PlayerActions.CALL:
             self.pot_amount += player.call(self.highest_bid, self.pot_amount)
+            if self.verbose:
+                print(f"Player calls ${self.highest_bid}. Pot is {self.pot_amount}")
         elif action == PlayerActions.RAISE:
             self.handle_raise(player, raise_amount)
+            if self.verbose:
+                print(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}")
         elif action == PlayerActions.ALL_IN:
             self.handle_raise(player, player.balance)
             #self.pot_amount += player.all_in(self.pot_amount)
         elif action == PlayerActions.FOLD:
             player.fold()
+            if self.verbose:
+                print(f"Player folds.\n")
 
     def handle_raise(self, player, raise_amount) -> None:
         """
@@ -145,6 +156,9 @@ class Game():
         """
         bet_amount = player.raise_bid(self.blind, self.highest_bid, raise_amount, self.pot_amount)
         self.pot_amount += bet_amount
+
+        if self.verbose:
+            print(f"Player raises {bet_amount}. Pot is {self.pot_amount}")
 
         if player.round_bid > self.highest_bid:
             self.highest_bid = player.round_bid
@@ -223,9 +237,13 @@ class Game():
         Returns:
             None
         """
-        for _ in range(2):
-            for p in self.players:
-                p.hand.add_card(self.deck.draw_card())
+        for p in self.players:
+            card1 = self.deck.draw_card()
+            card2 = self.deck.draw_card()
+            p.hand.add_card(card1)
+            p.hand.add_card(card2)
+            if p.player_type != "AI" and self.verbose:
+                print(f"Player hand: Card 1 is {card1}, Card 2 is {card2}")
 
 
     def show_next_cards(self, round: int) -> None:
@@ -240,6 +258,8 @@ class Game():
         Returns:
             None
         """
+        if self.verbose:
+            print(f"Community Cards:\n")
         if round == 0:
             return
         elif round == 1:
@@ -259,6 +279,8 @@ class Game():
         """
         for _ in range(num_cards):
             card = self.deck.draw_card()
+            if self.verbose:
+                print(f"{card}\n")
             for p in self.players:
                 p.hand.add_card(card)
 

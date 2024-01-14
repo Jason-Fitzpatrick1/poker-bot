@@ -14,4 +14,16 @@ class Card():
         if (value < 1 or value >14):
             raise ValueError("Card value must be between 1 and 14")
         return value
+    def __str__(self) -> str:
+        name = str(self.value)
+        if self.value == 14:
+            name = "ACE"
+        elif self.value == 13:
+            name = "KING"
+        elif self.value == 12:
+            name = "QUEEN"
+        elif self.value == 11:
+            name = "JACK"
+        
+        return f"{name} OF {self.suit.name}S"
     
