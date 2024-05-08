@@ -3,6 +3,9 @@ from .player import Player
 from .player_actions import PlayerActions
 from typing import List
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Game():
     def __init__(self, players: List[Player], starting_blind: int, blind_increase: float, max_rounds: int, verbose: bool=False) -> None:
         self.players = players
@@ -30,14 +33,14 @@ class Game():
             None
         """
         if self.verbose:
-            print("Welcome to Texas Hold'Em!\n")
+            logger.info("Welcome to Texas Hold'Em!\n")
         while not self.check_winner() and self.rounds_complete < self.max_rounds:
             self.deck = Deck()
             self.deck.shuffle()
             self.deal()
             round_names = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
             for i in range(4):
-                print(round_names[i])
+                logger.info(round_names[i])
                 self.show_next_cards(i)
                 self.round()
                 for p in self.players:
@@ -54,7 +57,7 @@ class Game():
             self.move_blinds()
             self.reset_round()
             if self.verbose:
-                print("Round Complete!\n")
+                logger.info("Round Complete!\n")
 
             self.rounds_complete += 1
     
@@ -86,9 +89,9 @@ class Game():
         self.players[self.first_turn - 2].round_bid += self.blind // 2
 
         if self.verbose and self.players[self.first_turn - 1].player_type != "AI":
-            print("You are big blind!\n")
+            logger.info("You are big blind!\n")
         elif self.verbose and self.players[self.first_turn - 2].player_type != "AI":
-            print("You are small blind!\n")
+            logger.info("You are small blind!\n")
 
     def process_player_actions(self) -> None:
         """
@@ -130,22 +133,22 @@ class Game():
         if action == PlayerActions.CHECK:
             player.check(self.highest_bid)
             if self.verbose:
-                print("Player checks\n")
+                logger.info("Player checks\n")
         elif action == PlayerActions.CALL:
             self.pot_amount += player.call(self.highest_bid, self.pot_amount)
             if self.verbose:
-                print(f"Player calls ${self.highest_bid}. Pot is {self.pot_amount}")
+                logger.info(f"Player calls ${self.highest_bid}. Pot is {self.pot_amount}")
         elif action == PlayerActions.RAISE:
             self.handle_raise(player, raise_amount)
             if self.verbose:
-                print(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}")
+                logger.info(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}")
         elif action == PlayerActions.ALL_IN:
             self.handle_raise(player, player.balance)
             #self.pot_amount += player.all_in(self.pot_amount)
         elif action == PlayerActions.FOLD:
             player.fold()
             if self.verbose:
-                print(f"Player folds.\n")
+                logger.info(f"Player folds.\n")
 
     def handle_raise(self, player: Player, raise_amount: int) -> None:
         """
@@ -159,7 +162,7 @@ class Game():
         self.pot_amount += bet_amount
 
         if self.verbose:
-            print(f"Player raises {bet_amount}. Pot is {self.pot_amount}")
+            logger.info(f"Player raises {bet_amount}. Pot is {self.pot_amount}")
 
         if player.round_bid > self.highest_bid:
             self.highest_bid = player.round_bid
@@ -244,7 +247,7 @@ class Game():
             p.hand.add_card(card1)
             p.hand.add_card(card2)
             if p.player_type != "AI" and self.verbose:
-                print(f"Player hand: Card 1 is {card1}, Card 2 is {card2}")
+                logger.info(f"Player hand: Card 1 is {card1}, Card 2 is {card2}")
 
 
     def show_next_cards(self, round: int) -> None:
@@ -260,7 +263,7 @@ class Game():
             None
         """
         if self.verbose:
-            print(f"Community Cards:\n")
+            logger.info(f"Community Cards:\n")
         if round == 0:
             return
         elif round == 1:
@@ -281,7 +284,7 @@ class Game():
         for _ in range(num_cards):
             card = self.deck.draw_card()
             if self.verbose:
-                print(f"{card}\n")
+                logger.info(f"{card}\n")
             for p in self.players:
                 p.hand.add_card(card)
 
