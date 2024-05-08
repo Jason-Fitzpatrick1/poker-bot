@@ -22,6 +22,10 @@ class GameTestCase(unittest.TestCase):
         self.game.deal()
         for player in self.players:
             self.assertEqual(len(player.hand.cards), 2)
+    
+    def test_blinds(self):
+        # Verify that blinds are deducted from players and added to the pot
+        pass
 
     def test_show_next_cards(self):
         # Verify that the correct number of cards is added to players' hands
@@ -109,7 +113,7 @@ class GameTestCase(unittest.TestCase):
         self.assertFalse(self.player2.is_out)
         self.assertFalse(self.player3.is_out)
     
-    def test_betting(self):
+    def test_betting(self): #TODO: Split into smaller tests
         # reset
         self.player1.balance = 1000
         self.player2.balance = 1000
@@ -155,10 +159,10 @@ class GameTestCase(unittest.TestCase):
         self.assertEqual(self.player3.current_bid, 25)
         self.assertEqual(self.player4.current_bid, 25)
 
-        self.assertEquals(self.player1.folded, False)
-        self.assertEquals(self.player2.folded, True)
-        self.assertEquals(self.player3.folded, False)
-        self.assertEquals(self.player4.folded, False)
+        self.assertEqual(self.player1.folded, False)
+        self.assertEqual(self.player2.folded, True)
+        self.assertEqual(self.player3.folded, False)
+        self.assertEqual(self.player4.folded, False)
         # deal flop
         flop_card1 = Card(2, Suit.HEART)
         flop_card2 = Card(7, Suit.SPADE)
@@ -194,15 +198,15 @@ class GameTestCase(unittest.TestCase):
         self.assertEqual(self.player3.current_bid, 1000)
         self.assertEqual(self.player4.current_bid, 1000)
 
-        self.assertEquals(self.player1.folded, True)
-        self.assertEquals(self.player2.folded, True)
-        self.assertEquals(self.player3.folded, False)
-        self.assertEquals(self.player4.folded, False)
+        self.assertEqual(self.player1.folded, True)
+        self.assertEqual(self.player2.folded, True)
+        self.assertEqual(self.player3.folded, False)
+        self.assertEqual(self.player4.folded, False)
 
-        self.assertEquals(self.player1.is_all_in, False)
-        self.assertEquals(self.player2.is_all_in, False)
-        self.assertEquals(self.player3.is_all_in, True)
-        self.assertEquals(self.player4.is_all_in, True)
+        self.assertEqual(self.player1.is_all_in, False)
+        self.assertEqual(self.player2.is_all_in, False)
+        self.assertEqual(self.player3.is_all_in, True)
+        self.assertEqual(self.player4.is_all_in, True)
         # deal turn and river
         turn_card = Card(13, Suit.CLUB)
         river_card = Card(5, Suit.CLUB)

@@ -1,8 +1,8 @@
 import pickle
 import gzip
 
-from .poker.game import Game
-from .poker.player import Player
+from packages.poker.game import Game
+from packages.poker.player import Player
 
 '''
 TODO:
