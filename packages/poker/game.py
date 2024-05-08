@@ -154,6 +154,7 @@ class Game():
         Returns:
             None
         """
+        # raise_bid is save against overdrafts
         bet_amount = player.raise_bid(self.blind, self.highest_bid, raise_amount, self.pot_amount)
         self.pot_amount += bet_amount
 
@@ -162,7 +163,7 @@ class Game():
 
         if player.round_bid > self.highest_bid:
             self.highest_bid = player.round_bid
-            self.last_bidder = player
+            self.last_bidder = self.players.index(player)
 
     def update_current_player(self) -> None:
         """

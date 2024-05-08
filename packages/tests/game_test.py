@@ -140,6 +140,7 @@ class GameTestCase(unittest.TestCase):
         self.game.perform_action(self.player4, PlayerActions.CALL, 0)
         self.game.perform_action(self.player1, PlayerActions.CALL, 0)
         self.game.perform_action(self.player2, PlayerActions.FOLD, 0)
+
         # Assert game status
         self.assertEqual(self.game.highest_bid, 25)
         self.assertEqual(self.game.pot_amount, 85)
@@ -163,6 +164,9 @@ class GameTestCase(unittest.TestCase):
         self.assertEqual(self.player2.folded, True)
         self.assertEqual(self.player3.folded, False)
         self.assertEqual(self.player4.folded, False)
+
+        self.assertEqual(self.game.players.index(self.player3) == self.game.last_bidder, True)
+
         # deal flop
         flop_card1 = Card(2, Suit.HEART)
         flop_card2 = Card(7, Suit.SPADE)
@@ -207,6 +211,9 @@ class GameTestCase(unittest.TestCase):
         self.assertEqual(self.player2.is_all_in, False)
         self.assertEqual(self.player3.is_all_in, True)
         self.assertEqual(self.player4.is_all_in, True)
+
+        self.assertEqual(self.game.players.index(self.player3) == self.game.last_bidder, True)
+
         # deal turn and river
         turn_card = Card(13, Suit.CLUB)
         river_card = Card(5, Suit.CLUB)
@@ -228,7 +235,7 @@ class GameTestCase(unittest.TestCase):
         self.assertEqual(self.player1.is_out, False)
         self.assertEqual(self.player2.is_out, False)
         self.assertEqual(self.player3.is_out, False)
-        self.assertEqual(self.player4.is_out, True)        
+        self.assertEqual(self.player4.is_out, True)
 
 if __name__ == '__main__':
     unittest.main()
