@@ -111,7 +111,7 @@ class Game():
                 self.perform_action(player, action, raise_amount)
             self.update_current_player()
 
-    def is_valid_player(self, player) -> bool:
+    def is_valid_player(self, player: Player) -> bool:
         """
         Checks if the player is valid for taking action.
 
@@ -120,7 +120,7 @@ class Game():
         """
         return not player.folded and not player.is_all_in and not player.is_out
 
-    def perform_action(self, player, action, raise_amount) -> None:
+    def perform_action(self, player: Player, action: PlayerActions, raise_amount: int) -> None:
         """
         Performs the corresponding action based on the player's choice.
 
@@ -147,7 +147,7 @@ class Game():
             if self.verbose:
                 print(f"Player folds.\n")
 
-    def handle_raise(self, player, raise_amount) -> None:
+    def handle_raise(self, player: Player, raise_amount: int) -> None:
         """
         Handles the raise action of the player.
 
@@ -409,7 +409,7 @@ class Game():
 
         return side_pot
 
-    def remove_losers(self):
+    def remove_losers(self) -> None:
         """
         Removes players with zero or negative balance from the game.
 
