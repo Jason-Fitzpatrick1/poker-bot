@@ -16,6 +16,12 @@ class Hand():
         else:
             self.cards = []
 
+    def __str__(self) -> str:
+        if not self.cards:
+            return "Empty hand"
+        else:
+            return "Cards in hand:\n" + "\n".join(str(card) for card in self.cards)
+
     def add_card(self, card: Card) -> None:
         '''
         Adds card to cards in hand

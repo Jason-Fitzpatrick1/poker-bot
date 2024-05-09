@@ -5,10 +5,10 @@ from .player_actions import PlayerActions
 from typing import Tuple
 
 class Player():
-    def __init__(self, starting_balance: int, player_type: str, hand: Hand=Hand(), num_hand_sims: int=5, genome: DefaultGenome=None, config: Config=None) -> None:
+    def __init__(self, starting_balance: int, player_type: str, hand: Hand=None, num_hand_sims: int=5, genome: DefaultGenome=None, config: Config=None) -> None:
         self.balance = starting_balance
         self.player_type = player_type.upper()
-        self.hand = hand
+        self.hand = hand if hand else Hand()
         self.num_hand_sims = num_hand_sims
         self.genome = genome
         if genome and config:

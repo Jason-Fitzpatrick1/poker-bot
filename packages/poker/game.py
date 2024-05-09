@@ -7,19 +7,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Game():
-    def __init__(self, players: List[Player], starting_blind: int, blind_increase: float, max_rounds: int, verbose: bool=False) -> None:
+    def __init__(self, players: List[Player], starting_blind: int, blind_increase: float, max_rounds: int) -> None:
         self.players = players
         self.deck = Deck()
         self.blind = starting_blind
         self.blind_increase = blind_increase
         self.max_rounds = max_rounds
-        self.pot_amount = 0
+        self.pot_amount = self.blind + self.blind // 2
         self.first_turn = 0
         self.highest_bid = self.blind
         self.rounds_complete = 0
-        self.last_bidder = len(self.players) -1
+        self.last_bidder = None
         self.current_player = 0
-        self.verbose = verbose
 
     def simulate(self) -> None:
         """
@@ -32,20 +31,13 @@ class Game():
         Returns:
             None
         """
-        if self.verbose:
-            logger.info("Welcome to Texas Hold'Em!\n")
+        logger.info("Welcome to Texas Hold'Em!\n")
         while not self.check_winner() and self.rounds_complete < self.max_rounds:
             self.deck = Deck()
             self.deck.shuffle()
             self.deal()
-            round_names = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
             for i in range(4):
-                logger.info(round_names[i])
-                self.show_next_cards(i)
-                self.round()
-                for p in self.players:
-                    p.round_bid = 0
-                self.highest_bid = 0
+                self.round(i)
                 if self.check_hand_winner():
                     rd = i
                     while len(self.players[0].hand.cards) < 7:
@@ -56,12 +48,10 @@ class Game():
             self.remove_losers()
             self.move_blinds()
             self.reset_round()
-            if self.verbose:
-                logger.info("Round Complete!\n")
-
+            logger.info("\nRound Complete!\n")
             self.rounds_complete += 1
     
-    def round(self) -> None:
+    def round(self, round: int) -> None:
         """
         Conducts a round of betting in the game.
 
@@ -71,7 +61,20 @@ class Game():
         Returns:
             None
         """
-        self.deduct_blinds()
+        round_names = ["PRE-FLOP", "FLOP", "TURN", "RIVER"]
+        logger.info(f"{round_names[round]}\n")
+
+        self.show_next_cards(round)
+
+        # Reset bets each round
+        for i, p in enumerate(self.players):
+            logger.info(f"Player {i+1} has a balance of ${p.balance}")
+            p.round_bid = 0
+            self.highest_bid = 0
+
+        if round == 0:
+            self.deduct_blinds()
+
         self.process_player_actions()
 
     def deduct_blinds(self) -> None:
@@ -87,11 +90,7 @@ class Game():
         self.players[self.first_turn - 2].deduct_balance(self.blind // 2)
         self.players[self.first_turn - 2].current_bid += self.blind // 2
         self.players[self.first_turn - 2].round_bid += self.blind // 2
-
-        if self.verbose and self.players[self.first_turn - 1].player_type != "AI":
-            logger.info("You are big blind!\n")
-        elif self.verbose and self.players[self.first_turn - 2].player_type != "AI":
-            logger.info("You are small blind!\n")
+        self.highest_bid = self.blind
 
     def process_player_actions(self) -> None:
         """
@@ -101,6 +100,9 @@ class Game():
             None
         """
         while self.current_player != self.last_bidder:
+            if self.last_bidder == None:
+                self.last_bidder = self.current_player
+            logging.info(f"Player {self.current_player + 1}'s turn (Balance: {self.players[self.current_player].balance}, Player's bet this hand: {self.players[self.current_player].current_bid}, Player's bet this round: {self.players[self.current_player].round_bid}, Amount to call: {self.highest_bid - self.players[self.current_player].round_bid}, Pot: {self.pot_amount}):\n")
             player = self.players[self.current_player]
             if self.is_valid_player(player):
                 other_actions = [p.prev_action for p in self.players if p != self.players[self.current_player]]
@@ -132,23 +134,18 @@ class Game():
         """
         if action == PlayerActions.CHECK:
             player.check(self.highest_bid)
-            if self.verbose:
-                logger.info("Player checks\n")
+            logger.info("Player checks\n")
         elif action == PlayerActions.CALL:
             self.pot_amount += player.call(self.highest_bid, self.pot_amount)
-            if self.verbose:
-                logger.info(f"Player calls ${self.highest_bid}. Pot is {self.pot_amount}")
+            logger.info(f"Player calls ${self.highest_bid}. Pot is ${self.pot_amount}\n")
         elif action == PlayerActions.RAISE:
             self.handle_raise(player, raise_amount)
-            if self.verbose:
-                logger.info(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}")
+            logger.info(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}\n")
         elif action == PlayerActions.ALL_IN:
             self.handle_raise(player, player.balance)
-            #self.pot_amount += player.all_in(self.pot_amount)
         elif action == PlayerActions.FOLD:
             player.fold()
-            if self.verbose:
-                logger.info(f"Player folds.\n")
+            logger.info(f"Player folds.\n")
 
     def handle_raise(self, player: Player, raise_amount: int) -> None:
         """
@@ -160,9 +157,6 @@ class Game():
         # raise_bid is save against overdrafts
         bet_amount = player.raise_bid(self.blind, self.highest_bid, raise_amount, self.pot_amount)
         self.pot_amount += bet_amount
-
-        if self.verbose:
-            logger.info(f"Player raises {bet_amount}. Pot is {self.pot_amount}")
 
         if player.round_bid > self.highest_bid:
             self.highest_bid = player.round_bid
@@ -194,6 +188,7 @@ class Game():
         self.pot_amount = self.blind + self.blind // 2
         self.highest_bid = self.blind
         self.current_player = self.first_turn
+        self.last_bidder = None
         for p in self.players:
             p.current_bid = 0
             p.folded = False
@@ -241,13 +236,13 @@ class Game():
         Returns:
             None
         """
-        for p in self.players:
+        for i, p in enumerate(self.players):
             card1 = self.deck.draw_card()
             card2 = self.deck.draw_card()
             p.hand.add_card(card1)
             p.hand.add_card(card2)
-            if p.player_type != "AI" and self.verbose:
-                logger.info(f"Player hand: Card 1 is {card1}, Card 2 is {card2}")
+            if p.player_type != "AI":
+                logger.info(f"Player {i+1} hand: Card 1 is {card1}, Card 2 is {card2}")
 
 
     def show_next_cards(self, round: int) -> None:
@@ -262,8 +257,7 @@ class Game():
         Returns:
             None
         """
-        if self.verbose:
-            logger.info(f"Community Cards:\n")
+        logger.info(f"Drawn Cards:")
         if round == 0:
             return
         elif round == 1:
@@ -283,8 +277,7 @@ class Game():
         """
         for _ in range(num_cards):
             card = self.deck.draw_card()
-            if self.verbose:
-                logger.info(f"{card}\n")
+            logger.info(card)
             for p in self.players:
                 p.hand.add_card(card)
 
@@ -329,6 +322,7 @@ class Game():
             tied_players = self.get_tied_players(p, unfolded_players, i)
 
             self.distribute_winnings(tied_players, settled_players)
+        logger.info("Pot settled.\n")
 
     def get_unfolded_players_sorted(self) -> List[Player]:
         """
@@ -339,6 +333,7 @@ class Game():
         """
         unfolded_players = [p for p in self.players if not p.folded and not p.is_out]
         unfolded_players.sort(key=lambda p: p.hand, reverse=True)
+        logging.info(f"Winning hand: {unfolded_players[0].hand}\n")
         return unfolded_players
 
     def get_tied_players(self, player: Player, unfolded_players: List[Player], index: int) -> List[Player]:
