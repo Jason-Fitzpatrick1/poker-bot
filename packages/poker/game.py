@@ -145,6 +145,7 @@ class Game():
             logger.info(f"Player raises ${raise_amount}. Pot is ${self.pot_amount}\n")
         elif action == PlayerActions.ALL_IN:
             self.handle_raise(player, player.balance)
+            logger.info(f"Player goes all-in! Pot is ${self.pot_amount}\n")
         elif action == PlayerActions.FOLD:
             player.fold()
             logger.info(f"Player folds.\n")
@@ -418,10 +419,11 @@ class Game():
         Returns:
             None
         """
-        for p in self.players:
+        for i, p in enumerate(self.players):
             if p.balance <= 0:
                 p.is_out = True
                 p.prev_action = PlayerActions.FOLD
+                logging.info(f"Player {i+1} has been eliminated.")
 
 
 

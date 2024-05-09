@@ -19,7 +19,7 @@ BLIND_INCREASE = 0.2 # how much big blind increases
 MAX_ROUNDS = 25 # max number of rounds in a game
 VERBOSE = True
 
-# with gzip.open('neat-checkpoint-2') as f:
+# with gzip.open('../neat-checkpoint-2') as f:
 #     generation, config, population, species_set, rndstate = pickle.load(f)
 #     bot1 = population[124]
 #     bot2 = population[99]
