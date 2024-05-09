@@ -65,6 +65,8 @@ class Game():
         logger.info(f"{round_names[round]}\n")
 
         self.show_next_cards(round)
+        self.current_player = self.first_turn
+        self.last_bidder = None
 
         # Reset bets each round
         for i, p in enumerate(self.players):
