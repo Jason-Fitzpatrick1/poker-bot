@@ -13,9 +13,9 @@ class Game():
         self.blind = starting_blind
         self.blind_increase = blind_increase
         self.max_rounds = max_rounds
-        self.pot_amount = self.blind + self.blind // 2
+        self.pot_amount = 0
         self.first_turn = 0
-        self.highest_bid = self.blind
+        self.highest_bid = 0
         self.rounds_complete = 0
         self.last_bidder = None
         self.current_player = 0
@@ -86,10 +86,12 @@ class Game():
         Returns:
             None
         """
-
-        self.highest_bid = self.blind
+        self.highest_bid = 0
+        self.blind = self.blind // 2
+        self.handle_raise(self.players[self.first_turn - 2], self.blind)
+        self.blind = self.blind * 2
         self.handle_raise(self.players[self.first_turn - 1], self.blind)
-        self.handle_raise(self.players[self.first_turn - 2], self.blind // 2)
+        self.last_bidder = None
 
     def process_player_actions(self) -> None:
         """
@@ -248,8 +250,8 @@ class Game():
             card2 = self.deck.draw_card()
             p.hand.add_card(card1)
             p.hand.add_card(card2)
-            if p.player_type != "AI":
-                logger.info(f"Player {i+1} hand: Card 1 is {card1}, Card 2 is {card2}")
+            #if p.player_type != "AI":
+            logger.info(f"Player {i+1} hand: Card 1 is {card1}, Card 2 is {card2}")
 
 
     def show_next_cards(self, round: int) -> None:
