@@ -178,5 +178,26 @@ class HandTestCase(unittest.TestCase):
         ])
         self.assertGreater(hand1, hand2)
 
+    def test_precomputed_hand_strength(self):
+        hand1 = Hand([
+            Card(value=14, suit=Suit.HEART),
+            Card(value=13, suit=Suit.HEART)
+        ])
+        self.assertEqual(hand1.hand_strength(), 0.6804753787878788)
+
+        hand2 = Hand([
+            Card(value=2, suit=Suit.DIAMOND),
+            Card(value=13, suit=Suit.HEART)
+        ])
+        self.assertEqual(hand2.hand_strength(), 0.4935801767676768)
+
+        hand3 = Hand([
+            Card(value=4, suit=Suit.HEART),
+            Card(value=4, suit=Suit.SPADE)
+        ])
+        self.assertEqual(hand3.hand_strength(), 0.5613203914141414)
+
+
+
 if __name__ == '__main__':
     unittest.main()
