@@ -54,22 +54,51 @@ python -m poker-bot.neat.neat
 ```
 from the root directory to train the model.
 
-**NOTE:** Training may take a very long time. For example,
-training with my Intel i7-6700 HQ CPU, training with the
-following parameters takes approximately 2.22 hours per generation:
+**NOTE:** Training may take a very long time. The bottleneck is the Monte Carlo simulation, so removing the hand strength parameter from the model, or providing a less time-intensive metric for hand strength would greatly speed up the model.
+For this reason, it is recommended to keep NUM_HAND_SIMS low. After some testing, 5 hand simulations is sufficient to 
+acheive sufficient accuracy of hand strength.
 ```
 neat.py
-GAME_SIZE = 10
-MAX_ROUNDS = 25
-NUM_HAND_SIMS = 50
+GAME_SIZE = 5 # Number of genomes competing in each game
+MAX_ROUNDS = 25 # Each game ends when MAX_ROUNDS is reached, or there is only one player left
+NUM_HAND_SIMS = 5 # Number of randomized decks for the Monte Carlo simulation to use for hand strength evaluations
 
 config.txt
 pop_size = 50
 ```
 
-Note that the bottleneck is the Monte Carlo simulation, so removing the hand strength parameter from the model, or providing
-a less time-intensive metric for hand strength would greatly speed up the model.
-
 ## Using the Model
 
-Will finish this section later...
+After training the model, the winning genome will be saved as 'winner' in the parent directory. 
+To use the model, add the config file and use Pickle to load the model as follows:
+
+```
+local_dir = os.path.dirname(__file__)
+config_path = os.path.join(local_dir, 'packages/model/config.txt')
+config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                        neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                        config_path)
+
+with open('winner', 'rb') as f:
+    bot1 = pickle.load(f)
+```
+
+Then, create a **Game** object with the required parameters, including a list of players. Players can either be **USER**s, which are controlled manually, or **AI**, which will be controlled by the specified **Genome**.
+Finally, use the **simulate** method of the game to start the game. Logs will appear in the console to convey game status, player actions, and inputs. Make sure to set VERBOSE equal to True if you wish to see the logged information. Set VERBOSE to False when training the model.
+
+```
+players = [
+    Player(STARTING_BALANCE, "USER"),
+    Player(STARTING_BALANCE, "AI", genome=bot1, config=config),
+]
+
+game = Game(players, STARTING_BLIND, BLIND_INCREASE, MAX_ROUNDS)
+
+if __name__ == '__main__':
+    if VERBOSE:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(levelname)s - %(message)s'
+        )
+    game.simulate()
+```
