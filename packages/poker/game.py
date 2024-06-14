@@ -13,9 +13,9 @@ class Game():
         self.blind = starting_blind
         self.blind_increase = blind_increase
         self.max_rounds = max_rounds
-        self.pot_amount = self.blind + self.blind // 2
+        self.pot_amount = 0
         self.first_turn = 0
-        self.highest_bid = self.blind
+        self.highest_bid = 0
         self.rounds_complete = 0
         self.last_bidder = None
         self.current_player = 0
@@ -86,13 +86,12 @@ class Game():
         Returns:
             None
         """
-        self.players[self.first_turn - 1].deduct_balance(self.blind)
-        self.players[self.first_turn - 1].current_bid += self.blind
-        self.players[self.first_turn - 1].round_bid += self.blind
-        self.players[self.first_turn - 2].deduct_balance(self.blind // 2)
-        self.players[self.first_turn - 2].current_bid += self.blind // 2
-        self.players[self.first_turn - 2].round_bid += self.blind // 2
-        self.highest_bid = self.blind
+        self.highest_bid = 0
+        self.blind = self.blind // 2
+        self.handle_raise(self.players[self.first_turn - 2], self.blind)
+        self.blind = self.blind * 2
+        self.handle_raise(self.players[self.first_turn - 1], self.blind)
+        self.last_bidder = None
 
     def process_player_actions(self) -> None:
         """
@@ -101,7 +100,7 @@ class Game():
         Returns:
             None
         """
-        while self.current_player != self.last_bidder:
+        while self.current_player != self.last_bidder and not self.check_hand_winner():
             if self.last_bidder == None:
                 self.last_bidder = self.current_player
             logging.info(f"Player {self.current_player + 1}'s turn (Balance: {self.players[self.current_player].balance}, Player's bet this hand: {self.players[self.current_player].current_bid}, Player's bet this round: {self.players[self.current_player].round_bid}, Amount to call: {self.highest_bid - self.players[self.current_player].round_bid}, Pot: {self.pot_amount}):\n")
@@ -219,16 +218,23 @@ class Game():
         Checks if there is a winner for the current hand.
 
         Determines if there is only one player remaining with a non-zero balance,
-        and who has not folded or gone all-in.
+        and who has not folded or all remaining players are all-in.
 
         Returns:
             bool: True if there is a winner, False otherwise.
         """
-        players_in = 0
+        num_players = len(self.players)
+        num_in = 0
+        num_folded = 0
+        num_all_in = 0
         for p in self.players:
-            if p.balance != 0 and not p.folded and not p.is_all_in:
-                players_in += 1
-        return players_in <= 1
+            num_in += 1 if not p.folded else 0
+            num_folded += 1 if p.folded else 0
+            num_all_in += 1 if p.is_all_in else 0
+
+        all_folded = num_in == 1 # Case 1 - all but one folded
+        all_in = num_folded + num_all_in == num_players # Case 2 - all unfolded players are all-in
+        return all_folded or all_in
 
     def deal(self) -> None:
         """
@@ -244,8 +250,8 @@ class Game():
             card2 = self.deck.draw_card()
             p.hand.add_card(card1)
             p.hand.add_card(card2)
-            if p.player_type != "AI":
-                logger.info(f"Player {i+1} hand: Card 1 is {card1}, Card 2 is {card2}")
+            #if p.player_type != "AI":
+            logger.info(f"Player {i+1} hand: Card 1 is {card1}, Card 2 is {card2}")
 
 
     def show_next_cards(self, round: int) -> None:

@@ -7,9 +7,25 @@ from .hand_category import HandCategory
 from typing import Tuple, List
 from itertools import combinations
 import copy
+import csv
 import random
 
+HAND_STRENGTHS_FILE = "starting_hand_strengths.csv"
+
 class Hand():
+    precomputed_data = {}
+
+    @classmethod
+    def load_precomputed_data(cls, filename: str) -> None:
+        with open(filename, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                hand = row['hand']
+                unsuited_strength = float(row['unsuited'])
+                suited_strength = float(row['suited'])
+                cls.precomputed_data[hand] = (unsuited_strength, suited_strength)
+
+
     def __init__(self, cards: List[Card]=None) -> None:
         if cards:
             self.cards = cards
@@ -43,9 +59,10 @@ class Hand():
         '''
         self.cards = []
 
-    def hand_strength(self, num_decks: int) -> float:
+    def hand_strength(self, num_decks: int=5) -> float:
         '''
-        Performs a Monte Carlo simulation to calculate the hand strength.
+        Performs a Monte Carlo simulation to calculate the hand strength. Or if hand
+        only has two cards, uses precomputed hand strengths from CSV.
 
         Args:
             num_decks (int): The number of decks to randomly generate with the remaining cards.
@@ -53,6 +70,15 @@ class Hand():
         Returns:
             float: The calculated hand strength.
         '''
+
+        if len(self.cards) == 2:
+            card1, card2 = self.cards
+            hand_key = f"{min(card1.value, card2.value)},{max(card1.value, card2.value)}"
+            if card1.suit == card2.suit:
+                return self.precomputed_data[hand_key][1]  # Suited strength
+            else:
+                return self.precomputed_data[hand_key][0]  # Unsuited strength
+
         num_processes = multiprocessing.cpu_count()
 
         with Pool(num_processes) as pool:
@@ -328,3 +354,6 @@ class Hand():
     
     def _is_consecutive(self, values) -> List[int]:
         return all(values[i] == values[i+1] + 1 for i in range(len(values)-1))
+
+# Load precomputed data once when the module is imported
+Hand.load_precomputed_data(HAND_STRENGTHS_FILE)
