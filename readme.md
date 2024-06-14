@@ -102,3 +102,15 @@ if __name__ == '__main__':
         )
     game.simulate()
 ```
+
+## Performance/Summary
+
+After training, genomes typically performed poorly. In many cases, it was difficult to distinguish between random actions and the bot's behavior. With this in mind, it is worth noting that this was never trained beyond 100 generations, because of the long training times. It was difficult to determine if additional generations improved the quality of the genomes, especially due to the nature of Texas Holdem, which is a game of imperfect information. In other words, because of the imperfect information, it may be impossible in some instances to know if a genome made a poor decision. 
+
+The genomes were evaluated post-training by simply playing against a human, and the expectation was that it would be clear if the bot was making reasoned decisions, because some basic strategies were assumed to be correct, such as betting when holding a strong hand. A better approach would have been to pair the winning genome against bots that perform random actions, and analyze the long term results. A genome with any strategy, should gain value in a long term evaluation, even in the presence of uncertainty.
+
+At the time of writing, no new training has been done since precomputing the strengths of starting hands, which should significantly reduce training time. In the future, a new winner will be trained over many more generations, and will be evaluated against randomized actions.
+
+If you are interested in other approaches to creating better poker bots, I recommend looking into **Monte Carlo Counterfactual Regret Minimization (MCCFRM)**, which is the preferred approach to poker-playing bots at the time of writing this. I chose to use **NEAT** not because I expected the best results, but because I thought this approach would yield the most interesting results, as I am not aware of any other attempts to create a poker-playing bot using **NEAT**.
+
+In particular, NEAT offers an interesting compromise between genetic algorithms and neural networks. Genetic algorithms provide a method for evolving strategies without needing a predefined model of the problem space, while neural networks offer powerful tools for pattern recognition and decision making in complex environments. NEAT combines these strengths by evolving neural network structures along with their weights, allowing for dynamic adaptation and complexity growth. This means that as training progresses, the networks can become more sophisticated and better suited to the task, potentially uncovering novel strategies that purely human-designed networks might miss. However, the balance between exploration and exploitation remains a key challenge, and the computational demands can be significant. Despite these challenges, the potential for discovering unique and effective poker strategies makes NEAT a fascinating choice for this project.
